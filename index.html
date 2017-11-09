@@ -24,9 +24,10 @@ body {
 
 			//  We need this because the assets are on github pages
 			//  Remove the next 2 lines if running locally
-			this.load.baseURL = 'https://ioniodi.github.io/Super-Mario/';
-			this.load.crossOrigin = 'anonymous';
-
+			game.load.audio('jump', ['audio/jump.wav','audio/jump.ogg']);
+			game.load.audio('coinss', ['audio/coin.wav','audio/coin.ogg']);
+			game.load.audio('stomp', ['audio/stomp.wav','audio/stomp.ogg']);
+                       game.load.audio('Super Mario Bros. Theme Song', ['audio/Super Mario Bros. Theme Song.mp3', 'audio/Super Mario Bros. Theme Song.ogg']);
 			this.load.spritesheet('tiles', 'assets/super_mario_tiles.png', 16,
 					16);
 			this.load.spritesheet('goomba', 'assets/goomba.png', 16, 16);
@@ -37,6 +38,19 @@ body {
 					Phaser.Tilemap.TILED_JSON);
 		}
 
+		var score = 0;
+		var scoreS = '';
+		var scorekeimeno;
+                var zwes = 3;
+                var zwesS= ''; 
+                var zweskeimeno;
+		var jumpsound;
+		var coinsound;
+		var stompsound;
+                var s;
+                var music;  
+		
+		
 		function create() {
 			Phaser.Canvas.setImageRenderingCrisp(game.canvas)
 			game.scale.pageAlignHorizontally = true;
@@ -45,7 +59,8 @@ body {
 			game.physics.startSystem(Phaser.Physics.ARCADE);
 
 			game.stage.backgroundColor = '#5c94fc';
-
+                        music = game.add.audio('Super Mario Bros. Theme Song');
+                        music.play();  
 			map = game.add.tilemap('level');
 			map.addTilesetImage('tiles', 'tiles');
 			map.setCollisionBetween(3, 12, true, 'solid');
@@ -72,6 +87,20 @@ body {
 			goombas.setAll('body.velocity.x', -20);
 			goombas.setAll('body.gravity.y', 500);
 
+			scoreS = 'Score : ';
+    
+			scorekeimeno = game.add.text(10, 10, scoreS + score, { font: '20px Arial', fill: '#fff' });
+			scorekeimeno.fixedToCamera = true;
+			scorekeimeno.cameraOffset.setTo(10, 10)
+
+                        zwesS = 'Zwes : x ';
+    
+			zweskeimeno = game.add.text(2, 2, zwesS + zwes, { font: '15px Arial', fill: '#fff' });
+			zweskeimeno.fixedToCamera = true;
+			zweskeimeno.cameraOffset.setTo(180, 3);
+
+
+
 			player = game.add.sprite(16, game.world.height - 48, 'mario');
 			game.physics.arcade.enable(player);
 			player.body.gravity.y = 370;
@@ -81,6 +110,9 @@ body {
 			player.goesRight = true;
 
 			game.camera.follow(player);
+ 
+                        var gameoverLabel = stateText = game.add.text(500, 300, ' ', {font: '50px Arial', fill: '#F2F2F2'});
+                        stateText.anchor.setTo(1.1, 0.2);
 
 			cursors = game.input.keyboard.createCursorKeys();
 		}
@@ -110,10 +142,13 @@ body {
 				}
 
 				if (cursors.up.isDown && player.body.onFloor()) {
+					jumpsound = game.add.audio('jump');
+					jumpsound.play();
 					player.body.velocity.y = -190;
 					player.animations.stop();
 				}
-
+                                 
+                                 
 				if (player.body.velocity.y != 0) {
 					if (player.goesRight)
 						player.frame = 5;
@@ -124,6 +159,11 @@ body {
 		}
 
 		function coinOverlap(player, coin) {
+			coinsound = game.add.audio('coinss');
+			coinsound.play();
+			score += 20;
+        
+			scorekeimeno.text = scoreS + score;
 			coin.kill();
 		}
 
@@ -132,6 +172,11 @@ body {
 				goomba.animations.stop();
 				goomba.frame = 2;
 				goomba.body.enable = false;
+				stompsound = game.add.audio('stomp');
+				stompsound.play();
+				score += 20;
+    
+				scorekeimeno.text = scoreS + score;
 				player.body.velocity.y = -80;
 				game.time.events.add(Phaser.Timer.SECOND, function() {
 					goomba.kill();
@@ -141,10 +186,36 @@ body {
 				player.body.enable = false;
 				player.animations.stop();
 				game.time.events.add(Phaser.Timer.SECOND * 3, function() {
-					game.paused = true;
+				music.stop();
+				game.state.restart();
+				zwes -= 1;
+				zwesS = 'Zwes : x ';
+				zweskeimeno = game.add.text(2, 2, zwesS + zwes, { font: '15px Arial', fill: '#fff' });
+				zweskeimeno.fixedToCamera = true;
+				zweskeimeno.cameraOffset.setTo(180, 3);
 				});
+				if( zwes == 0) {
+				player.frame = 6;
+				player.body.enable = false;
+				player.animations.stop();
+				music.stop();
+				game.paused = true;
+				var answer = confirm("Exases oles tis zwes. Game Over. ");
+				if (answer) {
+					game.paused= false;
+					game.state.restart();
+					zwes = 3;
+					zwesS = 'Lives : x ';
+    
+					zweskeimeno = game.add.text(2, 2, zwesS + zwes, { font: '15px Arial', fill: '#fff' });
+					zweskeimeno.fixedToCamera = true;
+					zweskeimeno.cameraOffset.setTo(180, 3);
+					}
+	
+				}
+			
 			}
 		}
-	</script>
+       </script>
 </body>
 </html>
